@@ -22,27 +22,46 @@ text {
 <script src="js/lib/lodash.min.js"></script>
 <script src="js/hydra.js"></script>
 <script>
+
 var graph = {
   "nodes" : [
-    { name : "Coolgarif Tech\nSME Data Services", group : 1},
-    { name : "RDF & Semantic Data", group : 2},
+    { name : "Coolgarif Tech\nData Focused Digital Agency", group : 1},
+    { name : "Data Storage", group : 2},
+    { name : "Data Processing", group : 2},
+    { name : "Data Visualisation", group : 2},
+    { name : "Data Publication", group : 2},
     { name : "Data Mining", group : 2},
     { name : "Data Analysis", group : 2},
     { name : "Graph Databases", group : 2},
-    { name : "DataStore", group : 2},
+    { name : "Data Store", group : 2},
     { name : "Natural Language Processing", group : 2},
     { name : "Linked Data", group : 2},
-    { name : "Data Visualisation", group : 2}
+    { name : "Product Launch", group : 2},
+    { name : "Research Visualisation", group : 2},
+    { name : "Semantic Data Markup", group : 2},
+    { name : "Public API Creation", group : 2}
   ],
   "links" : [
     { source : 0, target : 1, value : 1 },
     { source : 0, target : 2, value : 1 },
     { source : 0, target : 3, value : 1 },
     { source : 0, target : 4, value : 1 },
-    { source : 0, target : 5, value : 1 },
-    { source : 0, target : 6, value : 1 },
-    { source : 0, target : 7, value : 1 },
-    { source : 0, target : 8, value : 1 }
+    { source : 1, target : 7, value : 1 },
+    { source : 1, target : 8, value : 1 },
+    { source : 2, target : 7, value : 1 },
+    { source : 2, target : 5, value : 1 },
+    { source : 2, target : 6, value : 1 },
+    { source : 2, target : 9, value : 1 },
+    { source : 2, target : 13, value : 1 },
+    { source : 3, target : 11, value : 1 },
+    { source : 3, target : 12, value : 1 },
+    { source : 3, target : 7, value : 1 },
+    { source : 3, target : 8, value : 1 },
+    { source : 3, target : 6, value : 1 },
+    { source : 3, target : 10, value : 1 },
+    { source : 4, target : 13, value : 1 },
+    { source : 4, target : 14, value : 1 },
+    { source : 4, target : 10, value : 1 }
   ]
 };
 
