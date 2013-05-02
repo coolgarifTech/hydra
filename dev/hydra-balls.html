@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style>
-
+/* 
 .node {
   stroke: #fff;
   stroke-width: 1.5px;
 }
-
+ */
 .link {
   stroke: #999;
   stroke-opacity: .6;
@@ -87,6 +87,11 @@ var node = svg.selectAll(".node")
     .data(graph.nodes)
   .enter().append("g")
   .attr("transform", "translate(" + (WIDTH/2) + "," + (HEIGHT/2) + ")" );
+
+var text_layer = svg.selectAll(".node")
+    .data(graph.nodes)
+  .enter().append("g")
+  .attr("transform", "translate(" + (WIDTH/2) + "," + (HEIGHT/2) + ")" );
 /*
 node.append("rect")
     .attr("class", "node")
@@ -107,10 +112,8 @@ node.append("circle")
   .style("fill", function(d) { return color(d.group); })
   .call(force.drag);
 
-node.append("title")
-    .text(function(d) { return d.name; });
 
-node.append("text")
+text_layer.append("text")
     .attr("dy", ".3em")
     .style("text-anchor", "middle")
     .text(function(d) { return d.name; });
@@ -138,5 +141,6 @@ force.on("tick", function() {
   alt_link.attr("d", path_from_data);
 
   node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  text_layer.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 });
 </script>
