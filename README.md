@@ -30,6 +30,8 @@ $ ./scripts/test.sh
 
  * the script will launch Chrome and Firefox windows - minimise these, but, leave them open
  * the terminal window will show the results of the tests run every time you save changes to either the unit test files, or, the js files being tested in __dev/js/__
+ * kill the test runner with __Ctrl+C__ - this will also kill the browser windows
 
- * edit the test configuration in __config/testacular.conf.js__
+
+ * edit the test configuration in __config/testacular.conf.js__ 
  * unit tests found in __tests/__
