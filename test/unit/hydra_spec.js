@@ -81,3 +81,117 @@ describe('Evenly placed points on a circle', function() {
     });
 
 });
+
+
+describe( 'Decorating links with non-presentational links', function() {
+
+
+  beforeEach( function() {
+    this.addMatchers( {
+      toEqualSet: function( expected ) {
+        // this.actual
+        // this.message
+        if( expected.length !== this.actual.length) return false;
+        return _.all( this.actual, function( actual_item ) {
+          return _.any( expected, function( expected_item ) {
+            return actual_item.source === expected_item.source && actual_item.target === expected_item.target;
+          } );
+        } );
+      }
+    } );
+  } );
+
+
+  it("new matcher should work", function() {
+
+    expect( [{source : 'foo', target : 'foo'}] ).toEqualSet( [{source: 'foo', target : 'foo'}] );
+
+    expect( [
+      {source : 'foo', target : 'foo'},
+      {source : 'bar', target : 'baz'}] )
+    .toEqualSet( [
+      {source : 'bar', target : 'baz'},
+      {source: 'foo', target : 'foo'}
+    ] );
+
+    expect( [
+      {source : 'foo', target : 'foo'},
+      {source : 'bar', target : 'baz'}] )
+    .not.toEqualSet( [
+      {source : 'bar', target : 'baz'},
+      {source: 'foo', target : 'flibble'}
+    ] );
+
+  });
+
+
+  it( 'should return an array', function() {
+    var returned = decorate_with_non_presentational_links([]);
+    expect( returned ).toEqual( [] );
+  } );
+
+  it("shouldn't add link in case where 1 parent, 1 child", function() {
+    var links = [
+      { source : 0, target : 1 }
+    ];
+    var returned = decorate_with_non_presentational_links( links );
+    expect( returned ).toEqual( links );
+  });
+
+  it("should add 1 link where 1 parent, 2 children", function() {
+    var links = [
+      { source : 0, target : 1 },
+      { source : 0, target : 2 }
+    ];
+    var result = [
+      { source : 0, target : 1 },
+      { source : 0, target : 2 },
+      { source : 1, target : 2, invisible : true }
+    ];
+    var returned = decorate_with_non_presentational_links( links );
+    expect( returned ).toEqualSet( result );
+  });
+
+  it("should add 2 links where 2 parents, each with 2 children", function() {
+    var links = [
+      { source : 0, target : 1 },
+      { source : 0, target : 2 },
+      { source : 3, target : 4 },
+      { source : 3, target : 5 }
+    ];
+    var result = [
+      { source : 0, target : 1 },
+      { source : 0, target : 2 },
+      { source : 3, target : 4 },
+      { source : 3, target : 5 },
+      { source : 1, target : 2, invisible : true },
+      { source : 4, target : 5, invisible : true }
+    ];
+    var returned = decorate_with_non_presentational_links( links );
+    expect( returned ).toEqualSet( result );
+  });
+
+  it("should add 4 links where 2 parents, each with 2 children, with one overlapping child", function() {
+    var links = [
+      { source : 0, target : 1 },
+      { source : 0, target : 2 },
+      { source : 3, target : 4 },
+      { source : 3, target : 5 },
+      { source : 0, target : 5 }
+    ];
+    var result = [
+      { source : 0, target : 1 },
+      { source : 0, target : 2 },
+      { source : 3, target : 4 },
+      { source : 3, target : 5 },
+      { source : 0, target : 5 },
+      { source : 1, target : 2, invisible : true },
+      { source : 4, target : 5, invisible : true },
+      { source : 5, target : 1, invisible : true },
+      { source : 5, target : 2, invisible : true }
+    ];
+    var returned = decorate_with_non_presentational_links( links );
+    expect( returned ).toEqualSet( result );
+  });
+
+} );

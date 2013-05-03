@@ -17,6 +17,28 @@ var evenly_spaced_points_on_a_circle = function( num_points, radius, centre_x, c
   } );
 };
 
+function decorate_with_non_presentational_links ( links ) {
+  var children_by_parent = _.groupBy( links, function( link ) {
+    return link.source;
+  } );
+
+  var non_displaying_links = _.flatten(
+    _.map( children_by_parent, function( children_of_parent ) {
+      var n = children_of_parent.length;
+      var arr = [];
+      for( var i = 0; i < n; i++ ) {
+        for( var j = i + 1; j < n; j++ ) {
+          arr.push( { source : children_of_parent[i].target, target : children_of_parent[j].target, invisible : true } );
+        }
+      }
+      return arr;
+    } )
+  );
+
+  // merge presentational and non-presentational links
+  var return_arr = links.concat( non_displaying_links );
+  return return_arr;
+}
 
 var warped_control_point = function( d ) {
   var x_weight = 20,
