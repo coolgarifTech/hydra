@@ -1,12 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style>
-/* 
-.node {
-  stroke: #fff;
-  stroke-width: 1.5px;
-}
- */
+
 .link {
   stroke: #999;
   stroke-opacity: .6;
@@ -68,7 +63,9 @@ var graph = {
 var CHARGE        = -300,
     LINK_DISTANCE =  150,
     WIDTH         =  600,
-    HEIGHT        =  500;
+    HEIGHT        =  500,
+    node,
+    link;
 
 var color = d3.scale.category20();
 
@@ -81,72 +78,39 @@ var svg = d3.select("body").append("svg")
     .attr("width", WIDTH)
     .attr("height", HEIGHT);
 
-// Make first node fixed
-graph.nodes[0].fixed = true;
-graph.nodes[0].x = WIDTH/2;
-graph.nodes[0].y = HEIGHT/2;
-
-// Add positions to other nodes
-_.merge( _.rest( graph.nodes ),
-         evenly_spaced_points_on_a_circle( _.rest( graph.nodes ).length, HEIGHT/2, WIDTH/2, HEIGHT/2 ) );
-
 force
     .nodes(graph.nodes)
     .links(graph.links)
     .start();
 
-var alt_link = svg.selectAll(".link")
+link = svg.selectAll(".link")
     .data(graph.links)
-  .enter().append("path")
+    .enter().append("line")
     .attr("class", "link")
-    .attr("fill", "none")
-    .attr("stroke-width", 2);
+    .style("stroke-width", "2");
 
-var node = svg.selectAll(".node")
+node = svg.selectAll(".node")
     .data(graph.nodes)
-  .enter().append("g")
-  .attr("transform", "translate(" + (WIDTH/2) + "," + (HEIGHT/2) + ")" );
+    .enter().append("g")
+    .attr("transform", "translate(" + (WIDTH/2) + "," + (HEIGHT/2) + ")" );
 
-var text_layer = svg.selectAll(".node")
-    .data(graph.nodes)
-  .enter().append("g")
-  .attr("transform", "translate(" + (WIDTH/2) + "," + (HEIGHT/2) + ")" );
-/*
-node.append("rect")
+node.append("circle")
     .attr("class", "node")
-    .attr("width", 150)
-    .attr("x", -75)
-    .attr("height", 50)
-    .attr("y", -25)
-    .attr("rx", 15)
-    .attr("ry", 15)
+    .attr("r", 25)
+    .attr("cx", 0)
+    .attr("cy", 0)
     .style("fill", function(d) { return color(d.group); })
     .call(force.drag);
-*/
-node.append("circle")
-  .attr("class", "node")
-  .attr("r", 50)
-  .attr("cx", 0)
-  .attr("cy", 0)
-  .style("fill", function(d) { return color(d.group); })
-  .call(force.drag);
-
-
-text_layer.append("text")
-    .attr("dy", ".3em")
-    .style("text-anchor", "middle")
-    .text(function(d) { return d.name; });
 
 
 force.on("tick", function() {
-  // link.attr("x1", function(d) { return d.source.x; })
-  //     .attr("y1", function(d) { return d.source.y; })
-  //     .attr("x2", function(d) { return d.target.x; })
-  //     .attr("y2", function(d) { return d.target.y; });
 
-  alt_link.attr("d", path_from_data);
+  link.attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
 
   node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-  text_layer.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+
 });
 </script>
