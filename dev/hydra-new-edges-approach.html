@@ -195,5 +195,40 @@ force.on( "tick", function() {
 
 function node_clicked( node ) {
   console.log( "Node clicked", node );
+  // check which nodes visible
+  // filter master_links and master_nodes based on this
+  // call update graph
+  var clicked_node_id = node.id;
+  // if node = invisible
+  // - make this node & its child nodes visible
+  // else
+  // - make this node * its child nodes visible
+  // from complete list of node ids, make visible all links who's source/target are both visible
+
+  var current_node_data = svg.selectAll( ".nodeGroup" ).data();
+  var current_node_ids=  _.pluck( current_node_data, 'id' );
+  // get id of nodes that are children of clicked node
+  var node_ids_linked_to_clicked_node = _.pluck( _.filter( master_links, function( link ) { return link.source === clicked_node_id; } ), 'target' );
+  var new_node_ids = _.union( current_node_ids, node_ids_linked_to_clicked_node );
+  console.log( new_node_ids );
+
+  // get all nodes with new_node_ids
+  var new_nodes = _.filter( master_nodes, function( node ) {
+    return _.contains( new_node_ids, node.id );
+  } );
+
+  // find all links where target && source are in new_node_ids
+  var new_links = _.filter( master_links, function( link ) {
+    return _.contains( new_node_ids, link.source ) && _.contains( new_node_ids, link.target );
+  } );
+  // NB need link.source and link.target to refer to *array index* of node in new_nodes!!
+  var new_links_adjusted_to_new_nodes_array_index = [];
+  _.forEach( new_links, function( link ) {
+    new_links_adjusted_to_new_nodes_array_index.push( { id: link.id, source: _.findIndex( new_nodes, function( node ) { return node.id === link.source; } ), target: _.findIndex( new_nodes, function( node ) { return node.id === link.target; } ) } );
+  } );
+
+//  console.log( new_nodes, new_links_adjusted_to_new_nodes_array_index );
+
+  update_graph( new_nodes, new_links_adjusted_to_new_nodes_array_index );
 }
 </script>
