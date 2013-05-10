@@ -28,7 +28,7 @@ text {
 
 </style>
 <body>
-<script src="js/lib/d3.v3.min.js"></script>
+<script src="http://d3js.org/d3.v3.js"></script>
 <script src="js/lib/lodash.min.js"></script>
 <script src="js/hydra.js"></script>
 <script>
@@ -75,35 +75,47 @@ var graph = {
   ]
 };
 
+_.each(graph.nodes, function(node, i){ node.id = i });
+graph.nodes[0].enabled = true;
 
 var CHARGE        = -1000,
     LINK_DISTANCE =  250,
     WIDTH         =  600,
     HEIGHT        =  500,
+    CENTRE_X      =  WIDTH/2,
+    CENTRE_Y      =  HEIGHT/2,
     node,
     link;
 
 // Make first node fixed
 graph.nodes[0].fixed = true;
-graph.nodes[0].x = WIDTH/2;
-graph.nodes[0].y = HEIGHT/2;
+graph.nodes[0].x = CENTRE_X;
+graph.nodes[0].y = CENTRE_Y;
 
 var force = d3.layout.force()
     .charge( function(d) {
+      if( !d.enabled) {
+        return 0;
+      }
+
       switch( d.group ) {
         case 1:
-          return -1000;
+          return -200;
         case 2:
-          return -600;
+          return -120;
         case 3:
-          return -300;
+          return -60;
       };
     } )
     .linkDistance( function(d) {
-      return d.source.group * 80;
+      return d.source.group * 160;
     } )
     .linkStrength( function(d) {
-      return d.invisible ? 0.1 : ( 3 - d.source.group ) / 2 ;
+      if( !d.target.enabled || !d.source.enabled) {
+        return 0;
+      }
+
+      return 0.2*( d.invisible ? 0.1 : ( 3 - d.source.group ) / 2 );
     } )
     .size([WIDTH, HEIGHT]);
 
@@ -111,37 +123,72 @@ var svg = d3.select("body").append("svg")
     .attr("width", WIDTH)
     .attr("height", HEIGHT);
 
-var new_links = decorate_with_non_presentational_links( graph.links );
 
-force
-    .nodes(graph.nodes)
-    .links( new_links )
-    .start();
+//graph.links = decorate_with_non_presentational_links( graph.links );
 
-link = svg.selectAll(".link")
-    .data(new_links)
-    .enter().append("line")
-    .attr("class", "link")
-    .classed("invisible", function(d) { return d.invisible; })
-    .style("stroke-width", "2");
+display_graph();
+link = d3.selectAll('.link');
+node = d3.selectAll('.nodeGroup');
 
-node = svg.selectAll(".node")
-    .data(graph.nodes)
-    .enter().append("g")
-    .attr("transform", "translate(" + (WIDTH/2) + "," + (HEIGHT/2) + ")" );
+function display_graph() {
 
-node.append("circle")
-    .attr("class", function(d){return "node group" + d.group})
-    .attr("r", 50)
-    .attr("cx", 0)
-    .attr("cy", 0)
-//    .style("fill", function(d) { return color(d.group); })
-    .call(force.drag);
+  force
+      .nodes(graph.nodes)
+      .links( graph.links )
+      .start();
+
+  svg.selectAll(".link")
+      .data(graph.links)
+      .enter().append("line")
+      .attr("class", "link")
+      .classed("invisible", function(d) { return d.invisible; })
+      .style("stroke-width", "2");
+
+  svg.selectAll(".nodeGroup")
+      .data( _.filter( graph.nodes, function(d){return d.enabled}), function(d){return d.id} )
+      .enter().append("g")
+      .attr('class', 'nodeGroup')
+      .attr("transform", "translate(" + (WIDTH/2) + "," + (HEIGHT/2) + ")" )
+      .append("circle")
+        .attr("class", function(d){return "node group" + d.group})
+        .attr("r", 50)
+        .attr("cx", 0)
+        .attr("cy", 0)
+    //    .style("fill", function(d) { return color(d.group); })
+        .call(force.drag)
+        .on('click', function(node){
+          var linksFromClickedNode = _.filter(graph.links, function( link ){
+              return link.source === node && !link.invisible;
+          });
+
+          var childNodes = _.pluck(linksFromClickedNode, 'target');
+
+          var new_nodes_centre_x = CENTRE_X + 1.5 * (node.x - CENTRE_X);
+          var new_nodes_centre_y = CENTRE_Y + 1.5 * (node.y - CENTRE_Y);
+
+          var childCentres = evenly_spaced_points_on_a_circle(childNodes.length, 100, new_nodes_centre_x, new_nodes_centre_y);
+
+          _.each(childNodes, function(childNode, i){
+              childNode.enabled = true;
+              childNode.x = childNode.px = childCentres[i].x;
+              childNode.y = childNode.py =childCentres[i].y;
+          });
+
+          console.log("the subnodes are ", childNodes)
+
+          display_graph();
+        });
+
+  node = d3.selectAll('.nodeGroup');
+}
 
 
 force.on("tick", function() {
 
-  link.attr("x1", function(d) { return d.source.x; })
+  console.log(link);
+
+  link
+      .attr("x1", function(d) { return d.source.x; })
       .attr("y1", function(d) { return d.source.y; })
       .attr("x2", function(d) { return d.target.x; })
       .attr("y2", function(d) { return d.target.y; });
