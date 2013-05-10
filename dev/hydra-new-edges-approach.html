@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}
+
+.invisible {
+  stroke: #f00;
+  stroke-opacity: .1;
+}
+
+text {
+  font: 10px sans-serif;
+}
+
+.group1 {
+  fill: #000;
+}
+.group2 {
+  fill: #666;
+}
+.group3 {
+  fill: #bbb;
+}
+
+</style>
+<body>
+<script src="http://d3js.org/d3.v3.js"></script>
+<script src="js/lib/lodash.min.js"></script>
+<script src="js/hydra.js"></script>
+<script>
+
+var graph = {
+  "nodes" : [
+    { name : "Coolgarif Tech\nData Focused Digital Agency", group : 1},
+    { name : "Data Storage", group : 2},
+    { name : "Data Processing", group : 2},
+    { name : "Data Visualisation", group : 2},
+    { name : "Data Publication", group : 2},
+    { name : "Data Mining", group : 3},
+    { name : "Data Analysis", group : 3},
+    { name : "Graph Databases", group : 3},
+    { name : "Data Store", group : 3},
+    { name : "Natural Language Processing", group : 3},
+    { name : "Linked Data", group : 3},
+    { name : "Product Launch", group : 3},
+    { name : "Research Visualisation", group : 3},
+    { name : "Semantic Data Markup", group : 3},
+    { name : "Public API Creation", group : 3}
+  ],
+  "links" : [
+    { source : 0, target : 1, value : 1 },
+    { source : 0, target : 2, value : 1 },
+    { source : 0, target : 3, value : 1 },
+    { source : 0, target : 4, value : 1 },
+    { source : 1, target : 7, value : 1 },
+    { source : 1, target : 8, value : 1 },
+    { source : 2, target : 7, value : 1 },
+    { source : 2, target : 5, value : 1 },
+    { source : 2, target : 6, value : 1 },
+    { source : 2, target : 9, value : 1 },
+    { source : 2, target : 13, value : 1 },
+    { source : 3, target : 11, value : 1 },
+    { source : 3, target : 12, value : 1 },
+    { source : 3, target : 7, value : 1 },
+    { source : 3, target : 8, value : 1 },
+    { source : 3, target : 6, value : 1 },
+    { source : 3, target : 10, value : 1 },
+    { source : 4, target : 13, value : 1 },
+    { source : 4, target : 14, value : 1 },
+    { source : 4, target : 10, value : 1 }
+  ]
+};
+
+/*
+
+    add nodes & links as they arise..
+
+    determine which nodes are visible
+    therefore calculate which links are relevant
+
+    pass nodes and links as new data to the fdg
+
+
+ */
+
+var CHARGE        = -1000,
+    LINK_DISTANCE =  250,
+    WIDTH         =  600,
+    HEIGHT        =  500,
+    CENTRE_X      =  WIDTH/2,
+    CENTRE_Y      =  HEIGHT/2,
+    nodes,
+    links;
+
+// Prepare master arrays which then get filtered..
+// - add links between children with shared parents
+var master_links = decorate_with_non_presentational_links( graph.links );
+// - add id properties to nodes for use when working with sets
+var master_nodes = _.forEach( graph.nodes, function( nd, i ) {
+  nd.id = i;
+} );
+// - add id properties to links for use when working with sets
+master_links = _.forEach( master_links, function( ln, i ) {
+  ln.id = i;
+} );
+
+//console.log('Nodes', master_nodes, 'Links', master_links);
+
+
+// Make first node fixed
+master_nodes[0].fixed = true;
+master_nodes[0].x = CENTRE_X;
+master_nodes[0].y = CENTRE_Y;
+
+var force = d3.layout.force()
+    .charge( CHARGE )
+    .linkDistance( LINK_DISTANCE )
+    .linkStrength( 0.1 )
+    .size([WIDTH, HEIGHT]);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", WIDTH)
+    .attr("height", HEIGHT);
+
+// Initial draw, centre node, no links
+update_graph( [ master_nodes[0] ], [] );
+
+/*
+link = d3.selectAll('.link');
+node = d3.selectAll('.nodeGroup');
+console.log('Links', link);
+console.log('Nodes', node);
+*/
+
+
+function update_graph( node_list, link_list ) {
+
+  force
+      .nodes( node_list )
+      .links( link_list )
+      .start();
+
+  // LINKS //
+
+  // UPDATE links
+  links = svg.selectAll(".link")
+      .data( link_list, function(d) { return d.id; } );
+
+  // ENTER links
+  links.enter().append("line")
+      .attr("class", "link")
+      .style("stroke-width", "2");
+
+  // EXIT links
+  links.exit().remove();
+
+
+  // NODES //
+
+  // UPDATE nodes
+  nodes = svg.selectAll( ".nodeGroup" )
+      .data( node_list, function( d ) { return d.id; } );
+
+  // ENTER nodes
+  nodes.enter().append( "g" )
+      .attr( 'class', 'nodeGroup' )
+      .on( "click", node_clicked )
+      .attr( "transform", "translate(" + (WIDTH/2) + "," + (HEIGHT/2) + ")" )
+      .call( force.drag )
+      .append( "circle" )
+        .attr( "class", function( d ){return "node group" + d.group} )
+        .attr( "r", 50 )
+        .attr( "cx", 0 )
+        .attr( "cy", 0 );
+
+  // EXIT nodes
+  nodes.exit().remove();
+}
+
+
+force.on( "tick", function() {
+    links
+        .attr( "x1", function( d ) { return d.source.x; } )
+        .attr( "y1", function( d ) { return d.source.y; } )
+        .attr( "x2", function( d ) { return d.target.x; } )
+        .attr( "y2", function( d ) { return d.target.y; } );
+
+    nodes
+        .attr( "transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; } );
+});
+
+function node_clicked( node ) {
+  console.log( "Node clicked", node );
+}
+</script>
