@@ -186,9 +186,9 @@ describe( 'Decorating links with non-presentational links', function() {
       { source : 3, target : 5 },
       { source : 0, target : 5 },
       { source : 1, target : 2, invisible : true },
-      { source : 4, target : 5, invisible : true },
-      { source : 5, target : 1, invisible : true },
-      { source : 5, target : 2, invisible : true }
+      { source : 1, target : 5, invisible : true },
+      { source : 2, target : 5, invisible : true },
+      { source : 4, target : 5, invisible : true }
     ];
     var returned = decorate_with_non_presentational_links( links );
     expect( returned ).toEqualSet( result );
