@@ -12,8 +12,12 @@
   stroke-opacity: 0;
 }
 
-text {
-  font: 10px sans-serif;
+text, tspan {
+  font: 13px sans-serif;
+  font-weight: bold;
+  text-anchor: middle;
+  text-shadow: 0 1px 2px rgba(0,0,0,.5);
+  fill: #fff;
 }
 
 .group1 {
@@ -87,7 +91,8 @@ var CHARGE        = -1000,
     CENTRE_X      =  WIDTH/2,
     CENTRE_Y      =  HEIGHT/2,
     nodes,
-    links;
+    links,
+    text;
 
 // Prepare master arrays which then get filtered..
 // - add links between children with shared parents
@@ -119,6 +124,7 @@ var svg = d3.select("body").append("svg")
 
 var link_layer = svg.append("g").attr("class", "link-layer");
 var node_layer = svg.append("g").attr("class", "node-layer");
+var text_layer = svg.append("g").attr("class", "text-layer");
 
 // Initial draw, centre node, no links
 update_graph( [ master_nodes[0] ], [] );
@@ -162,10 +168,39 @@ function update_graph( node_list, link_list ) {
         .attr( "class", function( d ){return "node group" + d.group} )
         .attr( "r", NODE_RADIUS )
         .attr( "cx", 0 )
-        .attr( "cy", 0 );
+        .attr( "cy", 0 )
 
   // EXIT nodes
   nodes.exit().remove();
+
+  // TEXT //
+
+  // UPDATE text
+  text = text_layer.selectAll( ".textGroup" )
+      .data( node_list, function( d ) { return d.id; } );
+
+  // ENTER text
+  var enter_text = text.enter().append( "g" )
+      .attr( 'class', 'textGroup' )
+      .attr( "transform", "translate(" + (WIDTH/2) + "," + (HEIGHT/2) + ")" );
+
+  var text_el = enter_text.insert("text")
+        .attr("dy", ".3em")    // moves text centre to middle of letters, rather than baseline
+        .each(function(d){
+          var words = d.name.split(' ');
+          var svg_text = this;
+          _.forEach( words, function( word ) {
+            d3.select(svg_text).append("svg:tspan")
+              .attr("x", 0)
+              .attr("dy", "1.2em")
+              .text(word);
+          } );
+          d3.select(this).attr("y", this.getBBox().height/-2 ); // center word block centrally in node
+        });
+
+
+  // EXIT text
+  text.exit().remove();
 }
 
 
@@ -177,6 +212,9 @@ force.on( "tick", function() {
         .attr( "y2", function( d ) { return d.target.y; } );
 
     nodes
+        .attr( "transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; } );
+
+    text
         .attr( "transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; } );
 });
 
