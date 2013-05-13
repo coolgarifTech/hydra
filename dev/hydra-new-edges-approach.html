@@ -39,7 +39,7 @@ text, tspan {
 
 var graph = {
   "nodes" : [
-    { name : "Coolgarif Tech\nData Focused Digital Agency", group : 1},
+    { name : "Coolgarif-Tech Data Focused Digital Agency", group : 1},
     { name : "Data Storage", group : 2},
     { name : "Data Processing", group : 2},
     { name : "Data Visualisation", group : 2},
@@ -56,10 +56,10 @@ var graph = {
     { name : "Public API Creation", group : 3}
   ],
   "links" : [
-    { source : 0, target : 1, value : 1 },
-    { source : 0, target : 2, value : 1 },
-    { source : 0, target : 3, value : 1 },
-    { source : 0, target : 4, value : 1 },
+    { source : 0, target : 1, value : 2 },
+    { source : 0, target : 2, value : 2 },
+    { source : 0, target : 3, value : 2 },
+    { source : 0, target : 4, value : 2 },
     { source : 1, target : 7, value : 1 },
     { source : 1, target : 8, value : 1 },
     { source : 2, target : 7, value : 1 },
@@ -91,8 +91,7 @@ var CHARGE        = -1000,
     CENTRE_X      =  WIDTH/2,
     CENTRE_Y      =  HEIGHT/2,
     nodes,
-    links,
-    text;
+    links;
 
 // Prepare master arrays which then get filtered..
 // - add links between children with shared parents
@@ -124,7 +123,6 @@ var svg = d3.select("body").append("svg")
 
 var link_layer = svg.append("g").attr("class", "link-layer");
 var node_layer = svg.append("g").attr("class", "node-layer");
-var text_layer = svg.append("g").attr("class", "text-layer");
 
 // Initial draw, centre node, no links
 update_graph( [ master_nodes[0] ], [] );
@@ -147,7 +145,7 @@ function update_graph( node_list, link_list ) {
   links.enter().append("line")
       .attr("class", "link")
       .classed( "invisible", function(d) { return d.invisible; } )
-      .style("stroke-width", LINK_WIDTH);
+      .style("stroke-width", function(d) { return d.source.id === 0 ? LINK_WIDTH * 3 : LINK_WIDTH; } );
 
   // EXIT links
   links.exit().remove();
@@ -159,34 +157,21 @@ function update_graph( node_list, link_list ) {
       .data( node_list, function( d ) { return d.id; } );
 
   // ENTER nodes
-  nodes.enter().append( "g" )
+  var node_groups = nodes.enter().append( "g" )
       .attr( 'class', 'nodeGroup' )
       .on( "click", node_clicked )
       .attr( "transform", "translate(" + (WIDTH/2) + "," + (HEIGHT/2) + ")" )
-      .call( force.drag )
-      .append( "circle" )
+      .call( force.drag );
+
+  node_groups.append( "circle" )
         .attr( "class", function( d ){return "node group" + d.group} )
         .attr( "r", NODE_RADIUS )
         .attr( "cx", 0 )
-        .attr( "cy", 0 )
+        .attr( "cy", 0 );
 
-  // EXIT nodes
-  nodes.exit().remove();
-
-  // TEXT //
-
-  // UPDATE text
-  text = text_layer.selectAll( ".textGroup" )
-      .data( node_list, function( d ) { return d.id; } );
-
-  // ENTER text
-  var enter_text = text.enter().append( "g" )
-      .attr( 'class', 'textGroup' )
-      .attr( "transform", "translate(" + (WIDTH/2) + "," + (HEIGHT/2) + ")" );
-
-  var text_el = enter_text.insert("text")
+  node_groups.append("text")
         .attr("dy", ".3em")    // moves text centre to middle of letters, rather than baseline
-        .each(function(d){
+        .each(function(d) {    // create tspan element per node - so stack of words
           var words = d.name.split(' ');
           var svg_text = this;
           _.forEach( words, function( word ) {
@@ -198,9 +183,8 @@ function update_graph( node_list, link_list ) {
           d3.select(this).attr("y", this.getBBox().height/-2 ); // center word block centrally in node
         });
 
-
-  // EXIT text
-  text.exit().remove();
+  // EXIT nodes
+  nodes.exit().remove();
 }
 
 
@@ -213,15 +197,10 @@ force.on( "tick", function() {
 
     nodes
         .attr( "transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; } );
-
-    text
-        .attr( "transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; } );
 });
 
 
 function node_clicked( node ) {
-  console.log( "Node clicked", node );
-
   var clicked_node_id = node.id;
 
   var current_node_data = node_layer.selectAll( ".nodeGroup" ).data();
