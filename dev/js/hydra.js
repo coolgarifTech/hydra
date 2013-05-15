@@ -39,17 +39,3 @@ function decorate_with_non_presentational_links ( links ) {
   var return_arr = links.concat( non_displaying_links );
   return return_arr;
 }
-
-var warped_control_point = function( d ) {
-  var x_weight = 20,
-      y_weight = 1.1;
-
-  var dx = ( d.target.x - d.source.x ) / x_weight,
-      dy = ( d.target.y - d.source.y ) / y_weight;
-
-  return ( d.source.x + dx )+','+( d.source.y + dy );
-};
-
-var path_from_data = function( d ) {
-  return 'M'+d.source.x+','+d.source.y+' Q'+warped_control_point(d)+' '+d.target.x+','+d.target.y;
-};

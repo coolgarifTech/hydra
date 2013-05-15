@@ -3,7 +3,8 @@
 <style>
 
 .link {
-  stroke: #999;
+/*   stroke: #e8e8e7; */
+  stroke: #dee7ea;
 /*  stroke-opacity: .6;  */
 }
 
@@ -13,21 +14,30 @@
 }
 
 text, tspan {
-  font: 13px sans-serif;
+  font: 12px sans-serif;
   font-weight: bold;
   text-anchor: middle;
   text-shadow: 0 1px 2px rgba(0,0,0,.5);
   fill: #fff;
 }
 
+.text-group-2 {
+  text-transform: uppercase;
+}
+
+.text-group-3 {
+  font-size: 12px;
+}
+
 .group1 {
-  fill: #000;
+  fill: #1d2d3c;
 }
 .group2 {
-  fill: #666;
+  fill: #294055;
+  fill: #35516c;
 }
 .group3 {
-  fill: #bbb;
+  fill: #456d90;
 }
 
 .nodeGroup {
@@ -85,15 +95,16 @@ var graph = {
 
 
 // Setup graph vars
-var CHARGE        = -1000,
-    LINK_DISTANCE =  200,
-    LINK_STRENGTH =  0.1,
-    LINK_WIDTH    =  10,
-    NODE_RADIUS   =  60,
-    WIDTH         =  600,
-    HEIGHT        =  500,
-    CENTRE_X      =  WIDTH/2,
-    CENTRE_Y      =  HEIGHT/2,
+var CHARGE                = -1000,
+    LINK_DISTANCE         =  200,
+    LINK_STRENGTH         =  0.1,
+    LINK_WIDTH            =  10,
+    NODE_RADIUS           =  64,
+    NODE_RADIUS_VARIATION =  4,
+    WIDTH                 =  700,
+    HEIGHT                =  600,
+    CENTRE_X              =  WIDTH/2,
+    CENTRE_Y              =  HEIGHT/2,
     nodes,
     links;
 
@@ -169,7 +180,7 @@ function update_graph( node_list, link_list ) {
 
   node_groups.append( "circle" )
         .attr( "class", function( d ){return "node group" + d.group} )
-        .attr( "r", NODE_RADIUS )
+        .attr( "r", function(d) { return NODE_RADIUS - (d.group * NODE_RADIUS_VARIATION); } )
         .attr( "cx", 0 )
         .attr( "cy", 0 )
         .each( function(d) {
@@ -186,6 +197,7 @@ function update_graph( node_list, link_list ) {
         } );
 
   node_groups.append("text")
+        .attr("class", function(d) { return 'text-group-'+d.group; })
         .attr("dy", ".3em")    // moves text centre to middle of letters, rather than baseline
         .each(function(d) {    // create tspan element per node - so stack of words
            if( d.group === 1 ) return;   // if 1st node, don't add text
