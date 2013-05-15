@@ -30,9 +30,13 @@ text, tspan {
   fill: #bbb;
 }
 
+.nodeGroup {
+  cursor: pointer;
+}
+
 </style>
 <body>
-<script src="http://d3js.org/d3.v3.js"></script>
+<script src="js/lib/d3.v3.js"></script>
 <script src="js/lib/lodash.min.js"></script>
 <script src="js/hydra.js"></script>
 <script>
@@ -85,7 +89,7 @@ var CHARGE        = -1000,
     LINK_DISTANCE =  200,
     LINK_STRENGTH =  0.1,
     LINK_WIDTH    =  10,
-    NODE_RADIUS   =  50,
+    NODE_RADIUS   =  60,
     WIDTH         =  600,
     HEIGHT        =  500,
     CENTRE_X      =  WIDTH/2,
@@ -167,11 +171,24 @@ function update_graph( node_list, link_list ) {
         .attr( "class", function( d ){return "node group" + d.group} )
         .attr( "r", NODE_RADIUS )
         .attr( "cx", 0 )
-        .attr( "cy", 0 );
+        .attr( "cy", 0 )
+        .each( function(d) {
+          if( d.group === 1 ) {           // add coolgarif logo if 1st node
+            console.log(this.parentNode);
+            d3.select(this.parentNode).append("image")
+              .attr("xlink:href","coolgarif-logo-optimised.svg")
+              .attr("width", 100)
+              .attr("height", 100)
+              .attr("x", -50)
+              .attr("y", -50)
+              .attr("fill", "white");
+          }
+        } );
 
   node_groups.append("text")
         .attr("dy", ".3em")    // moves text centre to middle of letters, rather than baseline
         .each(function(d) {    // create tspan element per node - so stack of words
+           if( d.group === 1 ) return;   // if 1st node, don't add text
           var words = d.name.split(' ');
           var svg_text = this;
           _.forEach( words, function( word ) {
