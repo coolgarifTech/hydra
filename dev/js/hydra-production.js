@@ -1,48 +1,46 @@
-<!DOCTYPE html>
-<meta charset="utf-8">
-<style>
+function hydra( containing_element_id ) {
 
-.link {
-  stroke: #dee7ea;
-}
+var points_on_a_circle = function( n ) {
+  var arr = [],
+      PI2 = Math.PI * 2,
+      dn  = PI2 / n;
+  for (var i = n - 1; i >= 0; i--) {
+    var rad = i * dn;
+    arr.push( { x : Math.sin(rad), y : Math.cos(rad) } );
+  }
+  return arr;
+};
 
-.invisible {
-  stroke: #f00;
-  stroke-opacity: 0;
-}
+var evenly_spaced_points_on_a_circle = function( num_points, radius, centre_x, centre_y ) {
+  return _.map( points_on_a_circle( num_points ), function( coords ) {
+    coords.x = ( coords.x * radius ) + centre_x;
+    coords.y = ( coords.y * radius ) + centre_y;
+    return coords;
+  } );
+};
 
-text, tspan {
-  font: 12px sans-serif;
-  font-weight: bold;
-  text-anchor: middle;
-  text-shadow: 0 1px 2px rgba(0,0,0,.5);
-  fill: #fff;
-}
+function decorate_with_non_presentational_links ( links ) {
+  var children_by_parent = _.groupBy( links, function( link ) {
+    return link.source;
+  } );
 
-.text-group-2 {
-  text-transform: uppercase;
-}
+  var non_displaying_links = _.flatten(
+    _.map( children_by_parent, function( children_of_parent ) {
+      var n = children_of_parent.length;
+      var arr = [];
+      for( var i = 0; i < n; i++ ) {
+        for( var j = i + 1; j < n; j++ ) {
+          arr.push( { source : children_of_parent[i].target, target : children_of_parent[j].target, invisible : true } );
+        }
+      }
+      return arr;
+    } )
+  );
 
-.group1 {
-  fill: #1d2d3c;
+  // merge presentational and non-presentational links
+  var return_arr = links.concat( non_displaying_links );
+  return return_arr;
 }
-.group2 {
-  fill: #35516c;
-}
-.group3 {
-  fill: #456d90;
-}
-
-.nodeGroup {
-  cursor: pointer;
-}
-
-</style>
-<body>
-<script src="js/lib/d3.v3.js"></script>
-<script src="js/lib/lodash.min.js"></script>
-<script src="js/hydra.js"></script>
-<script>
 
 var graph = {
   "nodes" : [
@@ -125,9 +123,12 @@ var force = d3.layout.force()
     .linkStrength( LINK_STRENGTH )
     .size([WIDTH, HEIGHT]);
 
-var svg = d3.select("body").append("svg")
+var svg = d3.select( containing_element_id ).append("svg")
     .attr("width", WIDTH)
     .attr("height", HEIGHT);
+
+svg.append("style")
+    .text('.link{stroke:#dee7ea}.invisible {stroke: #f00;stroke-opacity:0;}text,tspan{font:12px sans-serif;font-weight:bold;text-anchor:middle;text-shadow:0 1px 2px rgba(0,0,0,.5);fill:#fff;}.text-group-2{text-transform:uppercase;}.group1{fill:#1d2d3c;}.group2{fill:#35516c;}.group3{fill:#456d90;}.nodeGroup{cursor:pointer;}');
 
 var link_layer = svg.append("g").attr("class", "link-layer");
 var node_layer = svg.append("g").attr("class", "node-layer");
@@ -172,7 +173,7 @@ function update_graph( node_list, link_list ) {
       .call( force.drag );
 
   node_groups.append( "circle" )
-        .attr( "class", function( d ){return "node group" + d.group} )
+        .attr( "class", function( d ){ return "node group" + d.group; } )
         .attr( "r", function(d) { return NODE_RADIUS - (d.group * NODE_RADIUS_VARIATION); } )
         .attr( "cx", 0 )
         .attr( "cy", 0 )
@@ -180,7 +181,7 @@ function update_graph( node_list, link_list ) {
           if( d.group === 1 ) {           // add coolgarif logo if 1st node
             console.log(this.parentNode);
             d3.select(this.parentNode).append("image")
-              .attr("xlink:href","coolgarif-logo-optimised.svg")
+              .attr("xlink:href","/img/coolgarif-logo-optimised.svg")
               .attr("width", 100)
               .attr("height", 100)
               .attr("x", -50)
@@ -252,4 +253,5 @@ function node_clicked( node ) {
 
   update_graph( new_nodes, new_links_adjusted_to_new_nodes_array_index );
 }
-</script>
+
+}
