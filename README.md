@@ -19,7 +19,7 @@ $ npm install -g karma
 
 ## Running Tests
 
-The tests are written in [Jasmine](http://pivotal.github.io/jasmine/) and are run in the versions of Chrome and Firefox that exist on your system.
+The tests are written in [Jasmine](https://jasmine.github.io/) and are run in the versions of Chrome and Firefox that exist on your system.
 
 To run the test suite:
 
